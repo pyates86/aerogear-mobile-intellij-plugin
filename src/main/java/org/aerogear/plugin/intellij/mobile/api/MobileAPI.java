@@ -5,17 +5,16 @@ import org.aerogear.plugin.intellij.mobile.models.MobileServices;
 import org.aerogear.plugin.intellij.mobile.models.ServiceClass;
 
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MobileAPI {
-
+    private static final String AEROGEAR_NOTIFICATION_GROUP = "AerogearMobileNotifications";
     public MobileAPI() {}
 
-    public MobileServices getServices() throws CLIException{
-        ProcessBuilder pb = new ProcessBuilder("mobile", "get", "services", "-o=json");
+    public MobileServices getServices() throws CLIException {
+        ProcessBuilder pb = new ProcessBuilder("/home/jroche/go/src/github.com/aerogear/mobile-cli/mobile", "get", "services", "-o=json");
         StringBuilder sb = new StringBuilder();
         BufferedReader bf = null;
 
@@ -43,7 +42,7 @@ public class MobileAPI {
 
     public void createService(ServiceClass sc, List<String> params) throws CLIException {
         List<String> command = new ArrayList<String>();
-        command.add("mobile");
+        command.add("/home/jroche/go/src/github.com/aerogear/mobile-cli/mobile");
         command.add("create");
         command.add("serviceinstance");
         command.add(sc.getServiceName());
@@ -51,11 +50,16 @@ public class MobileAPI {
             command.add(param);
         }
 
-        ProcessBuilder pb = new ProcessBuilder(command);
-        try {
-            pb.start();
-        } catch (IOException e) {
-            throw new CLIException("Failed to create mobile service " + sc.getServiceName(), e.getCause());
-        }
+        new MobileWatch(command).start(new Watch() {
+            @Override
+            public void onError(Exception e) {
+                //TODO: Handle success notification
+            }
+
+            @Override
+            public void onSuccess(StringBuilder sbi) {
+                //TODO: Handle error notification
+            }
+        });
     }
 }
